@@ -30,6 +30,7 @@ library(randomForest)
 Now that we have chosen a feature selection strategy, we now need to decide if we need to use all samples to build the model. We have two options: use all 19k records to build a single model or as there are six subjects we can build a model which addresses each subject individually. The advantage of the second option is that it is computationally less expensive (although we need to run the process 6 separate times, which is not that bad). Furthermore, if this technology were to be implemented in practice, it would make sense to train an algorithm to be predictive for a given user rather than a general algorithm that works well for many users, but is not as accurate as a customized one. I decided to build 6 different models, one for each user. 
 
 ```{r}
+#Change working directory to the folder containing the two csv files below, before running this code, by running ... setwd("full path of the correct directory")
 
 #First read the entire training dataset
 allData <- read.csv("pml-training.csv")
@@ -63,8 +64,13 @@ colnames(tsamp)==colnames(per_subj)
 ```
 
 **ERROR ESTIMATION AND CROSS VALIDATION**  
+Because our model building strategy focuses on building a separate model for each subject, we expect our out of sample error to be very low, as long as we can identify if the unseen sample comes from the same subject. As seen in the call to randomForest() below, the OOB estimate of error is less than 1%
 
-Because our model building strategy focuses on building a separate model for each subject, we expect our out of sample error to be very low, as long as we can identify if the unseen sample comes from the same subject. As it turns out, our 20 test samples each have the subject correctly identified and thus we expect our OOB error to be quite low. This was verified with the 10-fold cross validation process that is followed in the next few steps below.
+``` {r}
+randomForest(formula=classe ~., data=per_subj)
+```
+
+Furthermore, as it turns out, our 20 test samples each have the subject correctly identified and thus we expect our OOB error to be even low as well. This was verified with the 10-fold cross validation process that is followed in the next few steps below.
 
 ``` {r}
 ##Split into training and validation samples

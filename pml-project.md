@@ -25,6 +25,8 @@ Now that we have chosen a feature selection strategy, we now need to decide if w
 
 
 ```r
+#Change working directory to the folder containing the two csv files below, before running this code, by running ... setwd("full path of the correct directory")
+
 #First read the entire training dataset
 allData <- read.csv("pml-training.csv")
 #Next read the 20 sample test dataset
@@ -95,8 +97,32 @@ colnames(tsamp)==colnames(per_subj)
 ```
 
 **ERROR ESTIMATION AND CROSS VALIDATION**  
+Because our model building strategy focuses on building a separate model for each subject, we expect our out of sample error to be very low, as long as we can identify if the unseen sample comes from the same subject. As seen in the call to randomForest() below, the OOB estimate of error is less than 1%
 
-Because our model building strategy focuses on building a separate model for each subject, we expect our out of sample error to be very low, as long as we can identify if the unseen sample comes from the same subject. As it turns out, our 20 test samples each have the subject correctly identified and thus we expect our OOB error to be quite low. This was verified with the 10-fold cross validation process that is followed in the next few steps below.
+
+```r
+randomForest(formula=classe ~., data=per_subj)
+```
+
+```
+## 
+## Call:
+##  randomForest(formula = classe ~ ., data = per_subj) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 7
+## 
+##         OOB estimate of  error rate: 0.29%
+## Confusion matrix:
+##      A   B   C   D   E class.error
+## A 1176   1   0   0   0   0.0008496
+## B    1 487   1   0   0   0.0040900
+## C    0   0 652   0   0   0.0000000
+## D    0   0   4 517   1   0.0095785
+## E    0   0   0   2 560   0.0035587
+```
+
+Furthermore, as it turns out, our 20 test samples each have the subject correctly identified and thus we expect our OOB error to be even low as well. This was verified with the 10-fold cross validation process that is followed in the next few steps below.
 
 
 ```r
@@ -163,12 +189,12 @@ mod
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
-##    2    1         1      0.008        0.010   
-##   27    1         1      0.007        0.009   
-##   52    1         1      0.009        0.012   
+##    2    1         1      0.007        0.009   
+##   27    1         1      0.006        0.008   
+##   52    1         1      0.007        0.009   
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
-## The final value used for the model was mtry = 27.
+## The final value used for the model was mtry = 2.
 ```
 
 ```r
@@ -183,16 +209,16 @@ confusionMatrix(validation$classe, preds)
 ##           Reference
 ## Prediction   A   B   C   D   E
 ##          A 353   0   0   0   0
-##          B   0 142   4   0   0
-##          C   0   0 194   1   0
-##          D   0   0   0 156   0
-##          E   0   0   1   2 165
+##          B   1 144   1   0   0
+##          C   0   1 192   2   0
+##          D   0   0   3 153   0
+##          E   0   0   0   0 168
 ## 
 ## Overall Statistics
 ##                                         
 ##                Accuracy : 0.992         
 ##                  95% CI : (0.985, 0.997)
-##     No Information Rate : 0.347         
+##     No Information Rate : 0.348         
 ##     P-Value [Acc > NIR] : <2e-16        
 ##                                         
 ##                   Kappa : 0.99          
@@ -201,14 +227,14 @@ confusionMatrix(validation$classe, preds)
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             1.000    1.000    0.975    0.981    1.000
-## Specificity             1.000    0.995    0.999    1.000    0.996
-## Pos Pred Value          1.000    0.973    0.995    1.000    0.982
-## Neg Pred Value          1.000    1.000    0.994    0.997    1.000
-## Prevalence              0.347    0.139    0.195    0.156    0.162
-## Detection Rate          0.347    0.139    0.191    0.153    0.162
+## Sensitivity             0.997    0.993    0.980    0.987    1.000
+## Specificity             1.000    0.998    0.996    0.997    1.000
+## Pos Pred Value          1.000    0.986    0.985    0.981    1.000
+## Neg Pred Value          0.998    0.999    0.995    0.998    1.000
+## Prevalence              0.348    0.142    0.193    0.152    0.165
+## Detection Rate          0.347    0.141    0.189    0.150    0.165
 ## Detection Prevalence    0.347    0.143    0.192    0.153    0.165
-## Balanced Accuracy       1.000    0.998    0.987    0.991    0.998
+## Balanced Accuracy       0.999    0.995    0.988    0.992    1.000
 ```
 **ANALYZING RESULTS**  
 
